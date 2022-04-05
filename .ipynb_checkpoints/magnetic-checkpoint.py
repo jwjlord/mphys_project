@@ -1,0 +1,1 @@
+# finds magnetic properties of pyrochlore lattice
