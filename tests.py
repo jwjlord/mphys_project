@@ -1,5 +1,8 @@
 ########## Tests file ###########
 
+# TODO: some features of metropolis_run are not tested
+# visualisations module has no unit tests
+
 from .lattice import *
 from .metropolis import *
 from .coulomb import *
