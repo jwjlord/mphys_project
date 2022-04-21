@@ -65,27 +65,84 @@ def createLattice(n, D, side, seed=None):
 
     return lattice
 
-def save_lattice(spin_lattice, filename):
+def save_lattice(spin_lattice, filename, overwrite=False):
     """Saves the lattice as a numpy array string in a .txt file.
-    The lattice could be recovered by reading the file and passing its contents to np.array().
+    Protocol:
+    - A lattice takes up one line
+    - first numbers are the shape
+    - the delimiter is /
+    - then come the array elements
+    - For example '2 2/1 2 3 4' would be np.array([[1, 2], [3, 4]])
     :spin_lattice: np.ndarray(int) lattice representation as numpy array
     :filename: str, extensionless filename as a string
+    :overwrite: whether to overwrite if the file already exists
     :return: None"""
     
-    with open('filename' + '.txt', 'x') as f:
-        f.write(
-            np.array2string(spin_lattice, seperator=',')
-        )
+    if overwrite:
+        flag = 'w'
+    else:
+        flag = 'x'
+    
+    file_str = lattice2str(spin_lattice)
+    
+    filename += '.txt'
+    
+    with open(filename, flag) as f:
         
+        f.write(file_str)
         f.close()
         
-def get_mag(filename):
-    """Finds the magnetisations of a series of lattices saved as part of an execution of MetropolisRun.cool(). See the documentation for this method for more details of the file structure.
-    Takes the mean magnetisation across iterations
-    :filename: str, name of the file in which the lattice data is saved
-    :return: list(np.ndarray(float)), list of mean magnetisations at each temperature"""
+def lattice2str(lattice):
+    """Converts a lattice to a line in a file according to convention described in save_lattice.
+    :lattice: np.ndarray(int) lattice representation as numpy array
+    :return: str, lattice as file string"""
     
-    mean_mags = []
+    import numpy as np
+    
+    shape_str = str(
+        lattice.shape
+    ).strip('()').replace(',', '')
+    
+    arr_str = np.array_str(
+        np.ravel(lattice)
+    ).strip('[]')
+    
+    return shape_str + '/' + arr_str
+
+        
+def read_lattice(line):
+    """Reads a line of a file containing a lattice.
+    :line: str, line of a file in format described under save_lattice
+    :return: np.ndarray(int), lattice representation of the saved lattice"""
+    
+    import numpy as np
+    
+    split_file_str = line.split('/')
+    
+    shape = tuple(
+        [int(i) for i in split_file_str[0].split()]
+    )
+    
+    array = np.fromstring(
+        split_file_str[1],
+        dtype=int,
+        sep=' '
+    ).reshape(shape)
+    
+    return array
+
+# 18 April 2022: This function is yet to be implemented, needs tests writing
+# Two options for implementation:
+# - pass as an additional argument to MetropolisRun, magnetisation is calculated during the run (reduced time/space complexity)
+# - calculate using saved lattices from a previous run (more flexible, saves time during the run if magnetisation is not desired)
+        
+def get_mag_pyrochlore(lattice):
+    """Finds the magnetisation of a given lattice.
+    See MetropolisRun documentation for definitions.
+    :lattice: np.ndarray(int), lattice representation of spins
+    :return: np.ndarray(float), magnetisation of the lattice"""
+
+    # Gives the directions in space of the pyrochlore spins
     
     directions = np.array([
         [1,-1,-1],
@@ -106,41 +163,5 @@ def get_mag(filename):
         [-1,1,1]
     ])
     
-    # if a line has [: make an empty list
-    # if a subsequent line has [: make another empty list
-    # if a subsequent line has numbers: append them to the innermost list
-    # if a subsequent line has ]: append the innermost list to the next innermost list
-    
-    with open(filename, 'r') as f:
-        
-        next(f) # first line will be //, get rid of it
-        
-        mags = []
-        
-        while True:
-            try:
-                lattice_str = next(f)
-                
-                if lattice_str != '//':
-                    lattice = np.array(list(
-                        lattice_str
-                    ))
-                    
-                else:
-                    pass
-            
-            except StopIteration:
-                break
-            
-    
-    side = iceLattice.shape[0]
-    v = side ** 3
 
-    latticeIter = nditer(iceLattice,op_flags = ['readwrite'], flags = ['multi_index'])
-    M = array([0,0,0])
-    for spin in latticeIter:
-        indexLocation = latticeIter.multi_index
-        basisIndex = indexLocation[3]
-        M = M + (spin/sqrt(3)) * directions[(basisIndex,...)]
-    M = M/v
-    return(M)
+           

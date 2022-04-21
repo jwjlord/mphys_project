@@ -1,6 +1,6 @@
 # Class and functions relating to Metropolis cooling
 
-from .lattice import Lattice
+from .lattice import *
 
 class MetropolisRun(Lattice):
     """A lattice object to which the Metropolis algorithm can be applied. Child class of Lattice.
@@ -99,7 +99,6 @@ class MetropolisRun(Lattice):
             
             if lattice_filename is not None: # add delimiters to text file: new temp step
                 file.write('//')
-                file.write('\n')
             
             energies  = []
             
@@ -136,7 +135,9 @@ class MetropolisRun(Lattice):
                 energies.append(E)
                 
                 if lattice_filename is not None:
-                    file.write(np.array2string(self.spin_lattice, separator=','))
+                    file.write(
+                        lattice2str(self.spin_lattice)
+                    )
                     file.write('\n')
                 
             self.energy = np.mean(energies)

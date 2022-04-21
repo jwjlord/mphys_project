@@ -16,6 +16,11 @@ def test_create_lattice():
     assert test_lattice.side == side
     assert np.all(test_lattice.spin_lattice == np.array([[[1, -1]]]))
     
+    # read a line of a lattice file
+    
+    with open('test_read_file.txt') as f:
+        assert np.all(read_lattice(f.read()) == np.array([[[[-1, 1,-1,-1,-1,-1,-1,-1, 1,-1, 1,-1,-1,-1,-1, 1]]]]))
+    
 # ----- metropolis ------
 
 def test_run_metropolis():
@@ -51,6 +56,7 @@ def test_run_metropolis():
     assert test_run.energy == 0
     assert np.all(test_run.params['site_lattice']) == np.all(np.array([[[[2, 2, 2, 2, 2, 2, 2, 2]]]]))
     assert len(test_run.energies) == 100
+    
     
 #    assert _determine_flip() == 0
     
